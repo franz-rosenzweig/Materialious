@@ -33,25 +33,25 @@
 	);
 	let tabErrors: Record<string, string> = $state({});
 
-	// Cached videos show at once; the tab is refetched every time it is opened.
-	function loadTab(tabId: string | undefined) {
-		if (!tabId || tabId === popularTab) return;
+	// Cached videos show at once; a tab is refetched the first time it becomes
+	// active on each visit to Home. Default settings can pin tabs after mount.
+	const refreshedTabs = new Set<string>();
+	$effect(() => {
+		const tabId = activeTab;
+		if (!tabId || tabId === popularTab || refreshedTabs.has(tabId)) return;
 
+		refreshedTabs.add(tabId);
 		refreshHomeTab(tabId)
 			.then(() => delete tabErrors[tabId])
 			.catch((loadError) => (tabErrors[tabId] = String(loadError)));
-	}
+	});
 
 	function selectTab(tabId: string) {
 		interfaceHomeActiveTabStore.set(tabId);
-		loadTab(tabId);
 	}
 
 	onMount(() => {
-		if (showTabs) {
-			loadTab(activeTab);
-			return;
-		}
+		if (showTabs) return;
 
 		if (data.popularDisabled) {
 			if (isAndroidTv()) {
@@ -78,7 +78,7 @@
 				role="tab"
 				aria-selected={tab.id === activeTab}
 				class="chip no-margin"
-				class:fill={tab.id === activeTab}
+				class:primary={tab.id === activeTab}
 				onclick={() => selectTab(tab.id)}
 			>
 				<span>{tab.title}</span>

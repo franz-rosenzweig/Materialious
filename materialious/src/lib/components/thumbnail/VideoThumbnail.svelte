@@ -13,6 +13,7 @@
 		deArrowEnabledStore,
 		filterContentListStore,
 		filterContentUrlAutoUpdateStore,
+		invidiousAuthStore,
 		playerState
 	} from '#lib/store';
 	import { relativeTimestamp } from '#lib/time';
@@ -24,6 +25,9 @@
 	import { deleteWatchHistoryItem, saveWatchHistory } from '#lib/api/index';
 	import type { ThumbnailVideo } from '#lib/thumbnail';
 	import { isAndroidTv, truncate } from '#lib/utils';
+	import { isYTBackend } from '#lib/backend';
+	import { addToWatchLater, dontRecommendChannel } from '#lib/quickPlaylists';
+	import { addToast } from '../Toast.svelte';
 
 	interface Props {
 		video: ThumbnailVideo;
@@ -141,6 +145,28 @@
 	function onVideoSelected() {
 		playerState.set(undefined);
 	}
+
+	let metaLine = $derived.by(() => {
+		const views =
+			'viewCountText' in video && video.viewCountText
+				? video.viewCountText
+				: 'viewCount' in video && video.viewCount
+					? `${cleanNumber(video.viewCount)} ${$_('views')}`
+					: '';
+		return [views, getRelativePublished()].filter(Boolean).join(' • ');
+	});
+
+	let canUsePlaylists = $derived($invidiousAuthStore && !isYTBackend());
+
+	// Menu actions that end in a toast either way.
+	async function menuAction(action: () => Promise<string>, icon: string) {
+		thumbnailActionsVisible = false;
+		try {
+			addToast({ data: { text: await action(), icon } });
+		} catch (actionError) {
+			addToast({ data: { text: String(actionError), icon: 'error' } });
+		}
+	}
 </script>
 
 <div
@@ -154,6 +180,37 @@
 >
 	{#if thumbnailActionsVisible}
 		<menu class="active root-menu" onmouseleave={() => (thumbnailActionsVisible = false)}>
+			{#if canUsePlaylists}
+				<li>
+					<button
+						class="transparent max"
+						onclick={() =>
+							menuAction(
+								async () => $_('addedTo', { playlist: await addToWatchLater(video.videoId) }),
+								'schedule'
+							)}
+					>
+						<i>schedule</i>
+						<span>{$_('watchLater')}</span>
+					</button>
+				</li>
+				{#if 'authorId' in video && video.authorId}
+					{@const authorId = video.authorId}
+					<li>
+						<button
+							class="transparent max"
+							onclick={() =>
+								menuAction(async () => {
+									await dontRecommendChannel(video.videoId, authorId);
+									return $_('channelBlocked', { author: video.author });
+								}, 'block')}
+						>
+							<i>block</i>
+							<span>{$_('dontRecommendChannel')}</span>
+						</button>
+					</li>
+				{/if}
+			{/if}
 			<li>
 				<Share
 					shares={[
@@ -316,7 +373,7 @@
 				{#if !isAndroidTv()}
 					{#if progress}
 						<button
-							class="chip surface-container-highest"
+							class="chip surface-container-highest watch-toggle"
 							onclick={(e) => {
 								e.stopPropagation();
 								e.preventDefault();
@@ -331,7 +388,7 @@
 						</button>
 					{:else}
 						<button
-							class="chip surface-container-highest"
+							class="chip surface-container-highest watch-toggle"
 							onclick={(e) => {
 								e.stopPropagation();
 								e.preventDefault();
@@ -380,81 +437,179 @@
 		</a>
 	</div>
 
-	<div class="thumbnail-details video-title" style="flex: 1;">
-		<div class="video-title use-flex-column">
-			<a
-				tabindex="-1"
-				style="padding-left: 1px;"
-				class="video-title"
-				data-sveltekit-preload-data="false"
-				href={watchUrl.toString()}
-				onclick={onVideoSelected}
-			>
-				<span class="bold" style="width: 100%;">{letterCase(video.title.trimEnd())}</span>
-			</a>
-
-			{#if !sideways}
-				<div class="small-space"></div>
-			{/if}
-
-			<nav class="align-end no-margin">
-				{#if !sideways && !isAndroidTv()}
-					<AuthorAvatar
-						author={video.author}
-						authorId={'authorId' in video ? (video.authorId ?? '') : ''}
-					/>
+	{#if !sideways && !isAndroidTv()}
+		<div class="card-details">
+			<AuthorAvatar
+				author={video.author}
+				authorId={'authorId' in video ? (video.authorId ?? '') : ''}
+			/>
+			<div class="card-text">
+				<a
+					tabindex="-1"
+					class="card-title"
+					data-sveltekit-preload-data="false"
+					href={watchUrl.toString()}
+					onclick={onVideoSelected}>{letterCase(video.title.trimEnd())}</a
+				>
+				{#if 'authorId' in video && video.authorId}
+					<a
+						tabindex="-1"
+						class="card-meta"
+						href={resolve('/(app)/channel/[slug]', { slug: video.authorId })}
+						data-sveltekit-preload-data="false">{video.author}</a
+					>
+				{:else}
+					<span class="card-meta">{video.author}</span>
 				{/if}
-				<div class="author-details" class:not-sideways={!sideways}>
-					<nav style="justify-content: space-between;width: 100%;">
-						<div>
-							{#if 'authorId' in video && video.authorId}
-								<a
-									tabindex="-1"
-									class:author={!sideways}
-									href={resolve('/(app)/channel/[slug]', { slug: video.authorId })}
-									data-sveltekit-preload-data="false"
-									>{truncate(video.author, 20)}
-								</a>
-							{:else}
-								<p>{truncate(video.author, 20)}</p>
-							{/if}
+				{#if metaLine}
+					<span class="card-meta">{metaLine}</span>
+				{/if}
+			</div>
+			<button
+				onclick={() => (thumbnailActionsVisible = !thumbnailActionsVisible)}
+				class="transparent circle small card-menu"
+			>
+				<i>more_vert</i>
+			</button>
+		</div>
+	{:else}
+		<div class="thumbnail-details video-title" style="flex: 1;">
+			<div class="video-title use-flex-column">
+				<a
+					tabindex="-1"
+					style="padding-left: 1px;"
+					class="video-title"
+					data-sveltekit-preload-data="false"
+					href={watchUrl.toString()}
+					onclick={onVideoSelected}
+				>
+					<span class="bold" style="width: 100%;">{letterCase(video.title.trimEnd())}</span>
+				</a>
 
-							{#if !('publishedText' in video) && 'viewCountText' in video}
-								<span>
-									{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}
-									{$_('views')}
-								</span>
-							{/if}
+				{#if !sideways}
+					<div class="small-space"></div>
+				{/if}
 
-							{#if 'published' in video}
-								{#if isAndroidTv()}
-									<span>{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}</span>
-									<span>{getRelativePublished()}</span>
+				<nav class="align-end no-margin">
+					{#if !sideways && !isAndroidTv()}
+						<AuthorAvatar
+							author={video.author}
+							authorId={'authorId' in video ? (video.authorId ?? '') : ''}
+						/>
+					{/if}
+					<div class="author-details" class:not-sideways={!sideways}>
+						<nav style="justify-content: space-between;width: 100%;">
+							<div>
+								{#if 'authorId' in video && video.authorId}
+									<a
+										tabindex="-1"
+										class:author={!sideways}
+										href={resolve('/(app)/channel/[slug]', { slug: video.authorId })}
+										data-sveltekit-preload-data="false"
+										>{truncate(video.author, 20)}
+									</a>
 								{:else}
+									<p>{truncate(video.author, 20)}</p>
+								{/if}
+
+								{#if !('publishedText' in video) && 'viewCountText' in video}
 									<span>
 										{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}
-										•
-										{getRelativePublished()}
+										{$_('views')}
 									</span>
 								{/if}
+
+								{#if 'published' in video}
+									{#if isAndroidTv()}
+										<span>{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}</span>
+										<span>{getRelativePublished()}</span>
+									{:else}
+										<span>
+											{video.viewCountText ?? cleanNumber(video.viewCount ?? 0)}
+											•
+											{getRelativePublished()}
+										</span>
+									{/if}
+								{/if}
+							</div>
+							{#if !sideways && !isAndroidTv()}
+								<button
+									onclick={() => (thumbnailActionsVisible = !thumbnailActionsVisible)}
+									class="transparent circle"
+								>
+									<i>more_vert</i>
+								</button>
 							{/if}
-						</div>
-						{#if !sideways && !isAndroidTv()}
-							<button
-								onclick={() => (thumbnailActionsVisible = !thumbnailActionsVisible)}
-								class="transparent circle"
-							>
-								<i>more_vert</i>
-							</button>
-						{/if}
-					</nav>
-				</div>
-			</nav>
+						</nav>
+					</div>
+				</nav>
+			</div>
 		</div>
-	</div>
+	{/if}
 </div>
 
 <style>
+	.card-details {
+		display: flex;
+		gap: 0.75rem;
+		align-items: flex-start;
+		padding: 0.75rem 0.125rem 0.5rem;
+	}
+
+	.card-text {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.125rem;
+	}
+
+	.card-title {
+		font-weight: 600;
+		line-height: 1.35;
+		color: var(--on-surface);
+		display: -webkit-box;
+		-webkit-line-clamp: 2;
+		line-clamp: 2;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		margin-bottom: 0.125rem;
+	}
+
+	.card-meta {
+		font-size: 0.875rem;
+		line-height: 1.3;
+		color: var(--on-surface-variant);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.card-menu {
+		flex-shrink: 0;
+		margin: -0.25rem -0.5rem 0 0;
+	}
+
+	.use-flex-column:not(.tv-root) .thumbnail {
+		border-radius: 0.75rem;
+	}
+
+	.thumbnail-image .watch-toggle {
+		opacity: 0;
+		transition: opacity 0.15s ease;
+	}
+
+	:global(.item-select:hover) .thumbnail-image .watch-toggle,
+	.thumbnail-image .watch-toggle:focus-visible {
+		opacity: 1;
+	}
+
+	@media (hover: none) {
+		.thumbnail-image .watch-toggle {
+			display: none;
+		}
+	}
+
 	.crop {
 		position: relative;
 		width: 100%;

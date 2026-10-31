@@ -97,15 +97,20 @@
 		</nav>
 		<h3>{playlist.info.title}</h3>
 		<p>
-			{cleanNumber(playlist.info.viewCount)}
-			{$_('views')} • {playlist.info.videoCount}
+			{#if playlist.info.viewCount > 0}
+				{cleanNumber(playlist.info.viewCount)}
+				{$_('views')} •
+			{/if}
+			{playlist.info.videoCount}
 			{$_('videos')}
 		</p>
-		<div class="divider" style="margin-bottom: 1em;"></div>
 
-		<article style="max-height: 200px;" class="scroll no-padding no-elevate no-round">
-			<p style="white-space: pre-line;word-wrap: break-word;">{playlist.info.description}</p>
-		</article>
+		{#if playlist.info.description?.trim()}
+			<div class="divider" style="margin-bottom: 1em;"></div>
+			<article style="max-height: 200px;" class="scroll no-padding no-elevate no-round">
+				<p style="white-space: pre-line;word-wrap: break-word;">{playlist.info.description}</p>
+			</article>
+		{/if}
 
 		<div class="space"></div>
 

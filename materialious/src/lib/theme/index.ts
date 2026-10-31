@@ -2,7 +2,7 @@ import { Capacitor, SystemBarType } from '@capacitor/core';
 import ui from 'beercss';
 import { get } from 'svelte/store';
 import { SystemBars, SystemBarsStyle } from '@capacitor/core';
-import { darkModeStore, interfaceAmoledTheme } from '../store';
+import { darkModeStore, interfaceAmoledTheme, interfaceFollowSystemThemeStore } from '../store';
 
 export type ThemeKey =
 	| '--primary'
@@ -170,4 +170,20 @@ export function clearThemeColors() {
 export function setThemeColor(theme: ThemeKey, color: string) {
 	document.documentElement.style.setProperty(theme, color.trim());
 	document.body.style.setProperty(theme, color.trim());
+}
+
+// While "match system" is on, dark mode tracks the OS live (a Mac that turns
+// dark at sunset), not just the first visit.
+export function followSystemTheme() {
+	if (!window.matchMedia) return;
+
+	const query = window.matchMedia('(prefers-color-scheme: dark)');
+	const apply = () => {
+		if (get(interfaceFollowSystemThemeStore) && get(darkModeStore) !== query.matches) {
+			darkModeStore.set(query.matches);
+		}
+	};
+
+	query.addEventListener('change', apply);
+	interfaceFollowSystemThemeStore.subscribe(apply);
 }

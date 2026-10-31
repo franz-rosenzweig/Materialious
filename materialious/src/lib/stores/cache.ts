@@ -38,6 +38,8 @@ export const channelCacheStore: Writable<{
 
 export const personalPlaylistsCacheStore: Writable<PlaylistPage[] | null> = writable(null);
 
+export const blockedChannelsStore: Writable<string[]> = writable([]);
+
 export const homeTabsCacheStore: Writable<{
 	[playlistId: string]: PlaylistPageVideo[];
 }> = writable({});

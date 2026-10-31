@@ -13,6 +13,7 @@ export const variables = defineEnvVars({
 	PUBLIC_DEFAULT_API_EXTENDED_INSTANCE: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_DEFAULT_COMPANION_INSTANCE: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_DEFAULT_SETTINGS: { public: true, schema: (input) => input ?? '' },
+	PUBLIC_PLAYLIST_META_INSTANCE: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_DEFAULT_SPONSERBLOCK_INSTANCE: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_PLAYER_ID: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_PROXY_DISABLED: { public: true, schema: (input) => input ?? '' },

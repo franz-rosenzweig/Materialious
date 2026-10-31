@@ -13,6 +13,7 @@ import {
 	interfaceHideShorts,
 	interfaceDefaultPage,
 	interfaceHomeTabsStore,
+	interfaceFollowSystemThemeStore,
 	interfaceDisplayThumbnailAvatars,
 	interfaceForceCase,
 	interfaceRegionStore,
@@ -256,6 +257,11 @@ export const persistedStores: PersistedStore<any>[] = [
 		name: 'defaultPage',
 		store: interfaceDefaultPage,
 		schema: zString
+	},
+	{
+		name: 'followSystemTheme',
+		store: interfaceFollowSystemThemeStore,
+		schema: zBoolean
 	},
 	{
 		name: 'homeTabs',

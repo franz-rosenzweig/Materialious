@@ -69,6 +69,12 @@ export const interfaceDisplayThumbnailAvatars = persist(
 	'disableThumbnailAvatars'
 );
 export const interfaceDefaultPage = persist(writable('/'), createStorage(), 'defaultPage');
+// Dark or light from the operating system, following it as it changes.
+export const interfaceFollowSystemThemeStore: Writable<boolean> = persist(
+	writable(true),
+	createStorage(),
+	'followSystemTheme'
+);
 export type HomeTab = { playlistId: string; title: string };
 // Playlists pinned to Home, shown there as tabs in this order.
 export const interfaceHomeTabsStore: Writable<HomeTab[]> = persist(

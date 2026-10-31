@@ -46,6 +46,7 @@ export {
 	interfaceDefaultPage,
 	interfaceHomeTabsStore,
 	interfaceHomeActiveTabStore,
+	interfaceFollowSystemThemeStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,
 	interfaceDisableAutoUpdate,
@@ -92,7 +93,8 @@ export {
 	playlistCacheStore,
 	channelCacheStore,
 	personalPlaylistsCacheStore,
-	homeTabsCacheStore
+	homeTabsCacheStore,
+	blockedChannelsStore
 } from './stores/index';
 export { isAndroidTv } from './utils';
 export type {

@@ -20,6 +20,7 @@
 		playerTheatreModeIsActive,
 		playerIsInWindowFullscreen,
 		playlistCacheStore,
+		playlistSettingsStore,
 		type PlayerState,
 		filterContentListStore,
 		sleepTimerStore
@@ -33,7 +34,7 @@
 	import Description from '#lib/components/watch/Description.svelte';
 	import LikesDislikes from '#lib/components/watch/LikesDislikes.svelte';
 	import Comment from '#lib/components/watch/Comment.svelte';
-	import { expandSummery } from '#lib/utils';
+	import { expandSummery, isMobile } from '#lib/utils';
 	import { humanizeSeconds, relativeTimestamp } from '#lib/time';
 	import { addToast } from '#lib/components/Toast.svelte';
 	import { getWatchPage } from '#lib/watch';
@@ -209,9 +210,19 @@
 	});
 
 	$effect(() => {
-		if ($interfaceAutoExpandComments && comments) {
+		if ($interfaceAutoExpandComments && comments && !isMobile()) {
 			expandSummery('comment-section');
 		}
+	});
+
+	// The next video in playlist order; on narrow screens it sits right under the
+	// video, where the playlist panel (at the very bottom there) can't be seen.
+	let upNext = $derived.by(() => {
+		if (!data.playlistId || $playlistSettingsStore[data.playlistId]?.shuffle) return;
+		const videos = $playlistCacheStore[data.playlistId]?.videos;
+		if (!videos) return;
+		const index = videos.findIndex((video) => video.videoId === data.video.videoId);
+		return index >= 0 ? videos[index + 1] : undefined;
 	});
 
 	onDestroy(() => {
@@ -444,6 +455,15 @@
 					</div>
 				</div>
 			</div>
+
+			{#if upNext && !$playerTheatreModeIsActive}
+				<div class="s m up-next">
+					<h6 class="small">{$_('upNext')}</h6>
+					{#key upNext.videoId}
+						<Thumbnail video={upNext} playlistId={data.playlistId} />
+					{/key}
+				</div>
+			{/if}
 
 			<article class="border">
 				<Description video={data.video} description={data.content.description} />
@@ -738,6 +758,31 @@
 	@media only screen and (max-width: 993px) {
 		.recommended {
 			margin-top: 0;
+		}
+	}
+
+	.up-next {
+		margin: 1rem 0 0.5rem;
+	}
+
+	.up-next h6 {
+		margin: 0 0 0.5rem;
+	}
+
+	/* Phones: every action on one line instead of a stray second row. */
+	@media only screen and (max-width: 600px) {
+		.video-actions > div {
+			display: flex;
+			flex-wrap: nowrap;
+			align-items: center;
+			gap: 0.25rem;
+			width: 100%;
+		}
+
+		.video-actions :global(button) {
+			margin: 0;
+			padding-inline: 0.625rem;
+			min-inline-size: 2.5rem;
 		}
 	}
 </style>

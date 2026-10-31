@@ -122,7 +122,10 @@
 						<article
 							onclick={(event) => handleItemSelect(event, uniqueItemId)}
 							id={uniqueItemId}
-							class="no-padding item-select border"
+							class="no-padding item-select"
+							class:border={isAndroidTv()}
+							class:transparent={!isAndroidTv()}
+							class:no-elevate={!isAndroidTv()}
 							style="height: 100%;"
 							tabindex="0"
 						>

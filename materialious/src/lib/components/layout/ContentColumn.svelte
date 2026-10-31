@@ -12,8 +12,10 @@
 		if (isAndroidTv()) {
 			mediumCol = '4';
 			largeCol = '4';
-		} else if (innerWidth <= 1750) {
+		} else if (innerWidth <= 1100) {
 			largeCol = '4';
+		} else if (innerWidth <= 1750) {
+			largeCol = '3';
 		} else {
 			largeCol = '2';
 		}

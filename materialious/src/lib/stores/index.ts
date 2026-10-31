@@ -51,6 +51,7 @@ export {
 	interfaceDefaultPage,
 	interfaceHomeTabsStore,
 	interfaceHomeActiveTabStore,
+	interfaceFollowSystemThemeStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,
 	interfaceDisableAutoUpdate,
@@ -105,5 +106,6 @@ export {
 	playlistCacheStore,
 	channelCacheStore,
 	personalPlaylistsCacheStore,
-	homeTabsCacheStore
+	homeTabsCacheStore,
+	blockedChannelsStore
 } from './cache';

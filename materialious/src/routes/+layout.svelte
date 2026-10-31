@@ -20,6 +20,7 @@
 
 	import {
 		clearThemeColors,
+		followSystemTheme,
 		setAmoledTheme,
 		setStatusBarColor,
 		setTheme,
@@ -86,6 +87,8 @@
 
 		await setStatusBarColor();
 	});
+
+	followSystemTheme();
 
 	App.addListener('backButton', async (data) => {
 		if (data.canGoBack) {

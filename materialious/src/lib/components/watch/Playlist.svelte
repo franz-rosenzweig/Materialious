@@ -31,11 +31,15 @@
 	<article class="no-elevate border" style="position: sticky; top: 0; z-index: 3;">
 		<h6>{playlist.info.title}</h6>
 		<p>
-			{cleanNumber(playlist.info.viewCount)}
-			{$_('views')} • {playlist.info.videoCount}
+			{#if playlist.info.viewCount > 0}
+				{cleanNumber(playlist.info.viewCount)}
+				{$_('views')} •
+			{/if}
+			{playlist.info.videoCount}
 			{$_('videos')}
 		</p>
-		<p>
+		<!-- An instance playlist's author is an account name, not a channel. -->
+		<p class:hidden-author={playlist.info.playlistId.startsWith('IVPL')}>
 			{#if playlist.info.authorId}
 				<a
 					href={resolve('/(app)/channel/[slug]', {
@@ -120,3 +124,9 @@
 		</article>
 	{/each}
 </article>
+
+<style>
+	.hidden-author {
+		display: none;
+	}
+</style>

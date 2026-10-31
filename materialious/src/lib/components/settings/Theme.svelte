@@ -14,6 +14,7 @@
 	import {
 		customThemesStore,
 		darkModeStore,
+		interfaceFollowSystemThemeStore,
 		interfaceAdvancedThemingStore,
 		interfaceAmoledTheme,
 		interfaceBorderRadiusStore,
@@ -88,6 +89,7 @@
 	}
 
 	async function toggleDarkMode() {
+		interfaceFollowSystemThemeStore.set(false);
 		activePresetId = undefined;
 		const isDark = get(darkModeStore);
 
@@ -222,6 +224,23 @@
 		}
 	}
 </script>
+
+<div class="field no-margin">
+	<nav class="no-padding">
+		<div class="max">
+			<div>{$_('layout.theme.matchSystem')}</div>
+		</div>
+		<label class="switch" tabindex="0">
+			<input
+				type="checkbox"
+				bind:checked={$interfaceFollowSystemThemeStore}
+				onclick={() => interfaceFollowSystemThemeStore.set(!$interfaceFollowSystemThemeStore)}
+				role="switch"
+			/>
+			<span></span>
+		</label>
+	</nav>
+</div>
 
 <button onclick={toggleDarkMode} class="no-margin surface-container-highest">
 	{#if !$darkModeStore}

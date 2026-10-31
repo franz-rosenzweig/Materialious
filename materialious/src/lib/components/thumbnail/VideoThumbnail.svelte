@@ -148,7 +148,10 @@
 	let metaLine = $derived.by(() => {
 		const views =
 			'viewCountText' in video && video.viewCountText
-				? video.viewCountText
+				? // Related videos come as a bare "181K".
+					/view/i.test(video.viewCountText)
+					? video.viewCountText
+					: `${video.viewCountText} ${$_('views')}`
 				: 'viewCount' in video && video.viewCount
 					? `${cleanNumber(video.viewCount)} ${$_('views')}`
 					: '';

@@ -210,7 +210,8 @@
 	});
 
 	$effect(() => {
-		if ($interfaceAutoExpandComments && comments && !isMobile()) {
+		const narrow = isMobile() || matchMedia('(max-width: 600px)').matches;
+		if ($interfaceAutoExpandComments && comments && !narrow) {
 			expandSummery('comment-section');
 		}
 	});

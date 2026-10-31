@@ -74,6 +74,15 @@
 		fadeEnd = tabBar.scrollLeft + tabBar.clientWidth < tabBar.scrollWidth - 4;
 	}
 
+	// Chips change width as fonts load and windows resize; re-measure on any change.
+	$effect(() => {
+		if (!tabBar) return;
+		const observer = new ResizeObserver(updateTabBarFade);
+		observer.observe(tabBar);
+		for (const chip of tabBar.children) observer.observe(chip);
+		return () => observer.disconnect();
+	});
+
 	$effect(() => {
 		if (!activeTab || !tabBar) return;
 		tick().then(() => {
@@ -114,8 +123,6 @@
 
 	onMount(() => {
 		if (showTabs) {
-			addEventListener('resize', updateTabBarFade);
-
 			if (get(invidiousAuthStore) && !isYTBackend()) {
 				loadBlockedChannels().catch(() => {});
 			}
@@ -145,7 +152,6 @@
 
 	onDestroy(() => {
 		hideSearchStore.set(false);
-		removeEventListener('resize', updateTabBarFade);
 	});
 </script>
 

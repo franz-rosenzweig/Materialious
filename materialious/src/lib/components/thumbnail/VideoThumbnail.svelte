@@ -577,6 +577,8 @@
 	}
 
 	.card-meta {
+		display: block;
+		text-align: start;
 		font-size: 0.875rem;
 		line-height: 1.3;
 		color: var(--on-surface-variant);

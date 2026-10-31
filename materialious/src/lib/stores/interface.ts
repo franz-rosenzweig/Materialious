@@ -87,6 +87,12 @@ export const interfaceHomeActiveTabStore: Writable<string> = persist(
 	createStorage(),
 	'homeActiveTab'
 );
+// Topic lanes this device has pinned once (see topics.ts), so unpinning one sticks.
+export const interfaceTopicTabsSeenStore: Writable<string[]> = persist(
+	writable([]),
+	createStorage(),
+	'topicTabsSeen'
+);
 // PUBLIC_DEFAULT_HOME_TABS were offered on this device once (see homeTabs.ts).
 export const interfaceHomeTabsDefaultsAppliedStore: Writable<boolean> = persist(
 	writable(false),

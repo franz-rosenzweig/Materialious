@@ -15,6 +15,7 @@ export const variables = defineEnvVars({
 	PUBLIC_DEFAULT_SETTINGS: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_PLAYLIST_META_INSTANCE: { public: true, schema: (input) => input ?? '' },
 	PUBLIC_DEFAULT_HOME_TABS: { public: true, schema: (input) => input ?? '' },
+	PUBLIC_TOPICS_PLAYLIST: { public: true, schema: (input) => input ?? '' },
 	PLAYLIST_META_INTERNAL: { schema: (input) => input ?? '' },
 	CF_ACCESS_EXEMPT_HOSTS: { schema: (input) => input ?? '' },
 	PUBLIC_DEFAULT_SPONSERBLOCK_INSTANCE: { public: true, schema: (input) => input ?? '' },

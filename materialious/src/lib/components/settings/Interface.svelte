@@ -47,6 +47,7 @@
 	import ComboBox from '../ComboBox.svelte';
 	import { corsProxyUrl } from '#lib/fetchProxy';
 	import { moveHomeTab, unpinFromHome } from '#lib/homeTabs';
+	import Topics from './Topics.svelte';
 
 	let invidiousInstance = $state(get(invidiousInstanceStore));
 
@@ -493,6 +494,8 @@
 		{/each}
 	</div>
 {/if}
+
+<Topics />
 
 {#if !Capacitor.isNativePlatform()}
 	<div class="space"></div>

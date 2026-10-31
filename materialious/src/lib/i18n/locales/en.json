@@ -74,6 +74,8 @@
 	"donate": "Donate",
 	"deleteAllHistory": "Delete all history",
 	"deleteAllHistoryInvidious": "Delete all watch history, here and on Invidious?",
+	"topics": "Topics",
+	"addTopic": "Add a topic",
 	"skipping": "Skipping",
 	"skip": "Skip",
 	"upcomingSegment": "Upcoming ",

@@ -10,6 +10,7 @@
 	import Search from '#lib/components/Search.svelte';
 	import VideoThumbnail from '#lib/components/thumbnail/VideoThumbnail.svelte';
 	import { pinDefaultHomeTabs, refreshHomeTab } from '#lib/homeTabs';
+	import { syncTopicTabs } from '#lib/topics';
 	import { _ } from '#lib/i18n/index';
 	import { loadBlockedChannels } from '#lib/quickPlaylists';
 	import {
@@ -49,11 +50,16 @@
 	// Started but unfinished, newest first.
 	let continueWatching: VideoWatchHistory[] = $state([]);
 
-	// Signing in pins the default tabs (once per device).
+	// Signed in: the default tabs (once per device), then the topic lanes, in that
+	// order so the topics don't count as tabs already pinned.
+	let signedInTabsSynced = false;
 	$effect(() => {
-		if ($invidiousAuthStore && !isYTBackend() && !showTabs) {
-			pinDefaultHomeTabs().catch(() => {});
-		}
+		if (!$invidiousAuthStore || isYTBackend() || signedInTabsSynced) return;
+		signedInTabsSynced = true;
+		pinDefaultHomeTabs()
+			.catch(() => {})
+			.then(() => syncTopicTabs())
+			.catch(() => {});
 	});
 
 	// Tabs can appear after mount (default settings, sign-in), so this waits for them.

@@ -23,6 +23,8 @@ export default defineConfig({
 	plugins: [
 		SvelteKitPWA({
 			injectRegister: 'inline',
+			// Send cookies with the manifest, so it loads behind a sign-in proxy.
+			useCredentials: true,
 			workbox: {
 				maximumFileSizeToCacheInBytes: 4000000
 			},

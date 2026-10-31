@@ -6,7 +6,8 @@ import {
 	DATABASE_CONNECTION_URI,
 	COOKIE_SECRET,
 	RATE_LIMIT_DISABLED,
-	PUBLIC_RATE_LIMIT_DISABLED
+	PUBLIC_RATE_LIMIT_DISABLED,
+	CF_ACCESS_EXEMPT_HOSTS
 } from '$app/env/private';
 
 import { RateLimiter } from 'sveltekit-rate-limiter/server';
@@ -32,6 +33,17 @@ const quickConnectLimiter = new RateLimiter({
 const sensitivePaths = [/^\/api\/user\/create$/, /^\/api\/user\/login$/];
 
 export async function handle({ event, resolve }) {
+	// Published through Cloudflare Access: only the listed hosts (direct, private
+	// addresses) may skip it, so a request without Access's header on any other
+	// host means Access is missing or was bypassed.
+	if (CF_ACCESS_EXEMPT_HOSTS) {
+		const exempt = CF_ACCESS_EXEMPT_HOSTS.split(',').map((host) => host.trim().toLowerCase());
+		const host = (event.request.headers.get('host') ?? '').replace(/:\d+$/, '').toLowerCase();
+		if (!exempt.includes(host) && !event.request.headers.has('cf-access-jwt-assertion')) {
+			return new Response('Forbidden', { status: 403 });
+		}
+	}
+
 	if (!isOwnBackend()?.internalAuth) {
 		return await resolve(event);
 	}

@@ -3,6 +3,7 @@
 	import InfiniteLoading, { type InfiniteEvent } from 'svelte-infinite-loading';
 	import { _ } from '#lib/i18n/index';
 	import { deleteWatchHistory, getWatchHistory } from '#lib/api/index';
+	import { usesInvidiousHistory } from '#lib/invidiousHistory';
 
 	let { data } = $props();
 
@@ -20,6 +21,7 @@
 	}
 
 	async function deleteHistory() {
+		if (usesInvidiousHistory() && !confirm($_('deleteAllHistoryInvidious'))) return;
 		await deleteWatchHistory();
 		data.videos = [];
 	}

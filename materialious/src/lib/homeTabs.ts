@@ -2,8 +2,13 @@ import { get } from 'svelte/store';
 import type { PlaylistPageVideo } from './api/model';
 import { getPublicEnv } from './env';
 import { originalFetch } from './fetchProxy';
-import { homeTabsCacheStore, interfaceHomeTabsStore } from './store';
+import {
+	homeTabsCacheStore,
+	interfaceHomeTabsDefaultsAppliedStore,
+	interfaceHomeTabsStore
+} from './store';
 import { fetchEntirePlaylist } from './playlist';
+import { getPersonalPlaylists } from './api/index';
 
 export function isPinnedToHome(playlistId: string): boolean {
 	return get(interfaceHomeTabsStore).some((tab) => tab.playlistId === playlistId);
@@ -76,5 +81,31 @@ export async function refreshHomeTab(playlistId: string) {
 		interfaceHomeTabsStore.set(
 			tabs.map((tab) => (tab.playlistId === playlistId ? { ...tab, title: info.title } : tab))
 		);
+	}
+}
+
+// PUBLIC_DEFAULT_HOME_TABS lists playlist titles (JSON). The first time someone signs
+// in on a device with nothing pinned, their own playlists with those titles are
+// pinned, in that order. Once per device, so unpinning them all later sticks.
+export async function pinDefaultHomeTabs() {
+	if (get(interfaceHomeTabsStore).length > 0 || get(interfaceHomeTabsDefaultsAppliedStore)) return;
+
+	let titles: string[];
+	try {
+		titles = JSON.parse(getPublicEnv('DEFAULT_HOME_TABS') ?? '[]');
+	} catch {
+		return;
+	}
+	if (!Array.isArray(titles) || titles.length === 0) return;
+
+	const playlists = await getPersonalPlaylists();
+	const tabs = titles.flatMap((title) => {
+		const playlist = playlists.find((item) => item.title === title);
+		return playlist ? [{ playlistId: playlist.playlistId, title: playlist.title }] : [];
+	});
+
+	interfaceHomeTabsDefaultsAppliedStore.set(true);
+	if (tabs.length > 0 && get(interfaceHomeTabsStore).length === 0) {
+		interfaceHomeTabsStore.set(tabs);
 	}
 }

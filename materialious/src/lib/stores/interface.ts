@@ -87,6 +87,12 @@ export const interfaceHomeActiveTabStore: Writable<string> = persist(
 	createStorage(),
 	'homeActiveTab'
 );
+// PUBLIC_DEFAULT_HOME_TABS were offered on this device once (see homeTabs.ts).
+export const interfaceHomeTabsDefaultsAppliedStore: Writable<boolean> = persist(
+	writable(false),
+	createStorage(),
+	'homeTabsDefaultsApplied'
+);
 export const interfaceSearchHistoryEnabled = persist(
 	writable(false),
 	createStorage(),

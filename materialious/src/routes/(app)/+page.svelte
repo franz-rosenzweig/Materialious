@@ -9,7 +9,7 @@
 	import PageLoading from '#lib/components/PageLoading.svelte';
 	import Search from '#lib/components/Search.svelte';
 	import VideoThumbnail from '#lib/components/thumbnail/VideoThumbnail.svelte';
-	import { refreshHomeTab } from '#lib/homeTabs';
+	import { pinDefaultHomeTabs, refreshHomeTab } from '#lib/homeTabs';
 	import { _ } from '#lib/i18n/index';
 	import { loadBlockedChannels } from '#lib/quickPlaylists';
 	import {
@@ -48,6 +48,33 @@
 
 	// Started but unfinished, newest first.
 	let continueWatching: VideoWatchHistory[] = $state([]);
+
+	// Signing in pins the default tabs (once per device).
+	$effect(() => {
+		if ($invidiousAuthStore && !isYTBackend() && !showTabs) {
+			pinDefaultHomeTabs().catch(() => {});
+		}
+	});
+
+	// Tabs can appear after mount (default settings, sign-in), so this waits for them.
+	let tabExtrasLoaded = false;
+	$effect(() => {
+		if (!showTabs || tabExtrasLoaded) return;
+		tabExtrasLoaded = true;
+
+		if (get(invidiousAuthStore) && !isYTBackend()) {
+			loadBlockedChannels().catch(() => {});
+		}
+
+		// Resume positions only exist on this device.
+		getWatchHistory({ localOnly: true })
+			.then((history) => {
+				continueWatching = history
+					.filter((video) => video.progress > 30 && video.lengthSeconds - video.progress > 60)
+					.slice(0, 12);
+			})
+			.catch(() => {});
+	});
 
 	// Cached videos show at once; a tab is refetched the first time it becomes
 	// active on each visit to Home. Default settings can pin tabs after mount.
@@ -122,20 +149,7 @@
 	}
 
 	onMount(() => {
-		if (showTabs) {
-			if (get(invidiousAuthStore) && !isYTBackend()) {
-				loadBlockedChannels().catch(() => {});
-			}
-
-			getWatchHistory()
-				.then((history) => {
-					continueWatching = history
-						.filter((video) => video.progress > 30 && video.lengthSeconds - video.progress > 60)
-						.slice(0, 12);
-				})
-				.catch(() => {});
-			return;
-		}
+		if (showTabs) return;
 
 		if (data.popularDisabled) {
 			if (isAndroidTv()) {

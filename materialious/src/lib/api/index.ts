@@ -1,8 +1,4 @@
-import {
-	getVideoYTjs,
-	getVideoPageYTjs,
-	continueVideoPlayerYTjs
-} from '#lib/api/youtubejs/video';
+import { getVideoYTjs, getVideoPageYTjs, continueVideoPlayerYTjs } from '#lib/api/youtubejs/video';
 import { get } from 'svelte/store';
 import {
 	invidiousAuthStore,
@@ -80,7 +76,17 @@ import {
 	deleteUnsubscribeInvidious,
 	postSubscribeInvidious
 } from './invidious/subscribe';
-import { postHistoryInvidious } from './invidious/history';
+import {
+	clearHistoryInvidious,
+	deleteHistoryItemInvidious,
+	postHistoryInvidious
+} from './invidious/history';
+import {
+	forgetInvidiousWatchedIds,
+	getInvidiousWatchHistory,
+	usesInvidiousHistory,
+	watchedElsewhere
+} from '#lib/invidiousHistory';
 import {
 	addPlaylistVideoInvidious,
 	deletePersonalPlaylistInvidious,
@@ -329,7 +335,13 @@ export async function deleteUnsubscribe(authorId: string, fetchOptions: RequestI
 }
 
 export async function getWatchHistory(
-	options: { page?: number; videoIds?: string[]; fetchOptions?: RequestInit } = {
+	options: {
+		page?: number;
+		videoIds?: string[];
+		fetchOptions?: RequestInit;
+		// This device's records only, skipping Invidious's history.
+		localOnly?: boolean;
+	} = {
 		page: undefined,
 		videoIds: undefined,
 		fetchOptions: undefined
@@ -341,11 +353,25 @@ export async function getWatchHistory(
 		return getWatchHistoryBackend(options);
 	}
 
+	const withInvidious = !options.localOnly && usesInvidiousHistory();
+	if (withInvidious && !options.videoIds) {
+		try {
+			return await getInvidiousWatchHistory(options.page ?? 1);
+		} catch {
+			// Signed out elsewhere or Invidious is down: this device's history below.
+		}
+	}
+
 	let watchHistory = await localDb.watchHistory.toArray();
 	watchHistory.sort((a, b) => b.watched.getTime() - a.watched.getTime());
 
 	if (options.videoIds) {
 		watchHistory = watchHistory.filter((item) => options.videoIds?.includes(item.videoId));
+		if (withInvidious) {
+			watchHistory.push(
+				...(await watchedElsewhere(options.videoIds, watchHistory).catch(() => []))
+			);
+		}
 	}
 
 	const cullAfter = 1000;
@@ -386,12 +412,22 @@ export async function deleteWatchHistory() {
 		return deleteWatchHistoryBackend();
 	}
 
+	if (usesInvidiousHistory()) {
+		await clearHistoryInvidious();
+		forgetInvidiousWatchedIds();
+	}
+
 	await localDb.watchHistory.clear();
 }
 
 export async function deleteWatchHistoryItem(videoId: string) {
 	if (isMaterialiousAccountActive()) {
 		return deleteWatchHistoryItemBackend(videoId);
+	}
+
+	if (usesInvidiousHistory()) {
+		await deleteHistoryItemInvidious(videoId);
+		forgetInvidiousWatchedIds();
 	}
 
 	await localDb.watchHistory.delete(videoId);
@@ -418,6 +454,12 @@ export async function saveWatchHistory(video: ThumbnailVideo, progress: number =
 
 	if (isMaterialiousAccountActive()) {
 		return saveWatchHistoryBackend(video, progress);
+	}
+
+	// Marked as watched by hand.
+	if (progress > 0 && usesInvidiousHistory()) {
+		await postHistoryInvidious(video.videoId);
+		forgetInvidiousWatchedIds();
 	}
 
 	if (await localDb.watchHistory.get(video.videoId)) return;

@@ -51,6 +51,7 @@ export {
 	interfaceDefaultPage,
 	interfaceHomeTabsStore,
 	interfaceHomeActiveTabStore,
+	interfaceHomeTabsDefaultsAppliedStore,
 	interfaceFollowSystemThemeStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,

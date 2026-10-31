@@ -69,6 +69,18 @@ export const interfaceDisplayThumbnailAvatars = persist(
 	'disableThumbnailAvatars'
 );
 export const interfaceDefaultPage = persist(writable('/'), createStorage(), 'defaultPage');
+export type HomeTab = { playlistId: string; title: string };
+// Playlists pinned to Home, shown there as tabs in this order.
+export const interfaceHomeTabsStore: Writable<HomeTab[]> = persist(
+	writable([]),
+	createStorage(),
+	'homeTabs'
+);
+export const interfaceHomeActiveTabStore: Writable<string> = persist(
+	writable(''),
+	createStorage(),
+	'homeActiveTab'
+);
 export const interfaceSearchHistoryEnabled = persist(
 	writable(false),
 	createStorage(),

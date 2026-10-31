@@ -44,6 +44,8 @@ export {
 	interfaceAmoledTheme,
 	interfaceDisplayThumbnailAvatars,
 	interfaceDefaultPage,
+	interfaceHomeTabsStore,
+	interfaceHomeActiveTabStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,
 	interfaceDisableAutoUpdate,
@@ -89,7 +91,8 @@ export {
 	feedLastItemId,
 	playlistCacheStore,
 	channelCacheStore,
-	personalPlaylistsCacheStore
+	personalPlaylistsCacheStore,
+	homeTabsCacheStore
 } from './stores/index';
 export { isAndroidTv } from './utils';
 export type {
@@ -97,5 +100,6 @@ export type {
 	SleepTimerState,
 	Keybinds,
 	SubtitleSettings,
-	ActiveCaptionTrack
+	ActiveCaptionTrack,
+	HomeTab
 } from './stores/index';

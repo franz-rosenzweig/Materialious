@@ -96,6 +96,7 @@
 	"hideVideo": "Hide video",
 	"hideAuthor": "Hide author",
 	"defaultPage": "Default page",
+	"homeTabs": "Home tabs",
 	"newest": "Newest",
 	"oldest": "Oldest",
 	"popular": "Popular",
@@ -133,7 +134,9 @@
 		"previous": "Previous",
 		"cloneToPlaylist": "Clone to playlist",
 		"cloning": "Cloning...",
-		"clonedSuccess": "Playlist cloned successfully"
+		"clonedSuccess": "Playlist cloned successfully",
+		"pinToHome": "Pin to Home",
+		"unpinFromHome": "Unpin from Home"
 	},
 	"thumbnail": {
 		"live": "LIVE",

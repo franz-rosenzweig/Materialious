@@ -49,6 +49,8 @@ export {
 	interfaceAmoledTheme,
 	interfaceDisplayThumbnailAvatars,
 	interfaceDefaultPage,
+	interfaceHomeTabsStore,
+	interfaceHomeActiveTabStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,
 	interfaceDisableAutoUpdate,
@@ -93,6 +95,7 @@ export {
 } from './sponsorblock';
 export { keybindStore, defaultKeybinds } from './keybinds';
 export type { Keybinds } from './keybinds';
+export type { HomeTab } from './interface';
 export {
 	searchHistoryStore,
 	feedLoadingStore,
@@ -101,5 +104,6 @@ export {
 	feedLastItemId,
 	playlistCacheStore,
 	channelCacheStore,
-	personalPlaylistsCacheStore
+	personalPlaylistsCacheStore,
+	homeTabsCacheStore
 } from './cache';

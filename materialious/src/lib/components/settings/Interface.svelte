@@ -32,6 +32,7 @@
 		interfaceAutoExpandDesc,
 		interfaceHideShorts,
 		interfaceDefaultPage,
+		interfaceHomeTabsStore,
 		interfaceDisableAutoUpdate,
 		interfaceForceCase,
 		interfaceRegionStore,
@@ -45,6 +46,7 @@
 	import { isOwnBackend } from '#lib/shared/index';
 	import ComboBox from '../ComboBox.svelte';
 	import { corsProxyUrl } from '#lib/fetchProxy';
+	import { moveHomeTab, unpinFromHome } from '#lib/homeTabs';
 
 	let invidiousInstance = $state(get(invidiousInstanceStore));
 
@@ -462,6 +464,35 @@
 	})}
 	onChange={(value) => interfaceDefaultPage.set(value)}
 />
+
+{#if $interfaceHomeTabsStore.length > 0}
+	<div class="space"></div>
+	<div class="settings">
+		<h6>{$_('homeTabs')}</h6>
+		{#each $interfaceHomeTabsStore as tab, index (tab.playlistId)}
+			<nav class="no-padding">
+				<div class="max">{tab.title}</div>
+				<button
+					class="circle transparent"
+					disabled={index === 0}
+					onclick={() => moveHomeTab(index, -1)}
+				>
+					<i>arrow_upward</i>
+				</button>
+				<button
+					class="circle transparent"
+					disabled={index === $interfaceHomeTabsStore.length - 1}
+					onclick={() => moveHomeTab(index, 1)}
+				>
+					<i>arrow_downward</i>
+				</button>
+				<button class="circle transparent" onclick={() => unpinFromHome(tab.playlistId)}>
+					<i>close</i>
+				</button>
+			</nav>
+		{/each}
+	</div>
+{/if}
 
 {#if !Capacitor.isNativePlatform()}
 	<div class="space"></div>

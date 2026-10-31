@@ -12,6 +12,7 @@ import {
 	interfaceAutoExpandDesc,
 	interfaceHideShorts,
 	interfaceDefaultPage,
+	interfaceHomeTabsStore,
 	interfaceDisplayThumbnailAvatars,
 	interfaceForceCase,
 	interfaceRegionStore,
@@ -81,6 +82,7 @@ export const zString = z.string();
 export const zArray = z.array(z.string());
 export const zChapterMode = z.enum(['automatic', 'manual', 'timeline']);
 export const zChapterModeRecord = z.record(z.string(), zChapterMode.optional());
+export const zHomeTabs = z.array(z.object({ playlistId: z.string(), title: z.string() }));
 export const zAuth = z.object({
 	username: z.string(),
 	token: z.string()
@@ -254,6 +256,12 @@ export const persistedStores: PersistedStore<any>[] = [
 		name: 'defaultPage',
 		store: interfaceDefaultPage,
 		schema: zString
+	},
+	{
+		name: 'homeTabs',
+		store: interfaceHomeTabsStore,
+		schema: zHomeTabs,
+		serialize: JSON.stringify
 	},
 	{
 		name: 'defaultQuality',

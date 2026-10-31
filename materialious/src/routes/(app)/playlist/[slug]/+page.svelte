@@ -3,7 +3,7 @@
 	import { resolveWatchPath } from '#lib/paths';
 	import { isAndroidTv, unsafeRandomItem } from '#lib/utils';
 	import { cleanNumber } from '#lib/numbers';
-	import { playlistSettingsStore } from '#lib/store';
+	import { interfaceHomeTabsStore, playlistSettingsStore } from '#lib/store';
 	import { _ } from '#lib/i18n/index';
 	import ItemsList from '#lib/components/layout/ItemsList.svelte';
 	import Share from '#lib/components/Share.svelte';
@@ -13,6 +13,7 @@
 	import type { VideoWatchHistory } from '#lib/api/model';
 	import { getWatchHistory } from '#lib/api/index';
 	import PageLoading from '#lib/components/PageLoading.svelte';
+	import { togglePinToHome } from '#lib/homeTabs';
 
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	let { data = $bindable() }: { data: any } = $props();
@@ -20,6 +21,9 @@
 	let playlist: any = $state(null);
 
 	const slug = $derived(page.params.slug as string);
+	const pinnedToHome = $derived(
+		$interfaceHomeTabsStore.some((tab) => tab.playlistId === playlist?.info.playlistId)
+	);
 
 	data.streamed.details?.then((result: any) => {
 		playlist = result;
@@ -54,8 +58,8 @@
 	<PageLoading />
 {:else}
 	<article class="border padding">
-		{#if playlist.videos.length > 0}
-			<nav>
+		<nav>
+			{#if playlist.videos.length > 0}
 				<button onclick={loadLastWatched} class="button circle extra no-margin">
 					<i>play_arrow</i>
 					<div class="tooltip bottom">
@@ -79,8 +83,18 @@
 						{$_('playlist.shuffleVideos')}
 					</div>
 				</a>
-			</nav>
-		{/if}
+			{/if}
+
+			<button
+				onclick={() => togglePinToHome(playlist.info.playlistId, playlist.info.title)}
+				class="button circle extra no-margin surface-container-highest"
+			>
+				<i class:fill={pinnedToHome}>push_pin</i>
+				<div class="tooltip bottom">
+					{pinnedToHome ? $_('playlist.unpinFromHome') : $_('playlist.pinToHome')}
+				</div>
+			</button>
+		</nav>
 		<h3>{playlist.info.title}</h3>
 		<p>
 			{cleanNumber(playlist.info.viewCount)}

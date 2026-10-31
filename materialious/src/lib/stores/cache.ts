@@ -37,3 +37,7 @@ export const channelCacheStore: Writable<{
 }> = writable({});
 
 export const personalPlaylistsCacheStore: Writable<PlaylistPage[] | null> = writable(null);
+
+export const homeTabsCacheStore: Writable<{
+	[playlistId: string]: PlaylistPageVideo[];
+}> = writable({});

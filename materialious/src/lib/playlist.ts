@@ -11,6 +11,16 @@ export async function loadEntirePlaylist(
 		return cachedPlaylists[playlistId];
 	}
 
+	const combined = await fetchEntirePlaylist(playlistId);
+	playlistCacheStore.set({ [playlistId]: combined });
+
+	return combined;
+}
+
+// Every page of a playlist, always fresh from the instance.
+export async function fetchEntirePlaylist(
+	playlistId: string
+): Promise<{ videos: PlaylistPageVideo[]; info: PlaylistPage }> {
 	const playlistVideos: PlaylistPageVideo[] = [];
 	const ignoreVideos = new Set<string>();
 
@@ -43,10 +53,7 @@ export async function loadEntirePlaylist(
 		}
 	}
 
-	const combined = { videos: playlistVideos, info: newPlaylist };
-	playlistCacheStore.set({ [playlistId]: combined });
-
-	return combined;
+	return { videos: playlistVideos, info: newPlaylist };
 }
 
 function processVideos(

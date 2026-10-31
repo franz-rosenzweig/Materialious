@@ -111,9 +111,8 @@
 	function disableSideways() {
 		if (!startedSideways) return;
 
-		if (window.innerWidth <= 1800) {
-			sideways = false;
-		} else sideways = true;
+		// Compact rows wherever there's a side column or list; full cards on phones.
+		sideways = isAndroidTv() ? window.innerWidth > 1800 : window.innerWidth > 600;
 	}
 
 	let thumbnailActionsVisible = $state(false);
@@ -437,12 +436,14 @@
 		</a>
 	</div>
 
-	{#if !sideways && !isAndroidTv()}
-		<div class="card-details">
-			<AuthorAvatar
-				author={video.author}
-				authorId={'authorId' in video ? (video.authorId ?? '') : ''}
-			/>
+	{#if !isAndroidTv()}
+		<div class="card-details" class:compact={sideways}>
+			{#if !sideways}
+				<AuthorAvatar
+					author={video.author}
+					authorId={'authorId' in video ? (video.authorId ?? '') : ''}
+				/>
+			{/if}
 			<div class="card-text">
 				<a
 					tabindex="-1"
@@ -645,13 +646,47 @@
 	}
 
 	.sideways-root {
-		height: 112px;
 		display: flex;
 		align-items: flex-start;
+		gap: 0.5rem;
+	}
+
+	.tv-root.sideways-root {
+		height: 112px;
+		gap: 0;
+	}
+
+	.sideways-root:not(.tv-root) .thumbnail {
+		width: clamp(7.5rem, 42cqw, 11rem);
+		border-radius: 0.5rem;
+	}
+
+	.card-details.compact {
+		flex: 1;
+		min-width: 0;
+		padding: 0;
+		gap: 0.25rem;
+	}
+
+	.card-details.compact .card-title {
+		font-size: 0.875rem;
+		line-height: 1.3;
+	}
+
+	.card-details.compact .card-meta {
+		font-size: 0.75rem;
+	}
+
+	.card-details.compact .card-menu {
+		margin: -0.375rem -0.5rem 0 0;
 	}
 
 	.sideways-root .thumbnail {
 		width: 200px;
+		flex-shrink: 0;
+	}
+
+	.sideways-root:not(.tv-root) #thumbnail-container {
 		flex-shrink: 0;
 	}
 
@@ -764,7 +799,7 @@
 	}
 
 	@media screen and (max-width: 1800px) {
-		.sideways-root .thumbnail {
+		.tv-root.sideways-root .thumbnail {
 			width: 100%;
 			max-height: 100%;
 		}
@@ -773,7 +808,7 @@
 			align-items: center;
 		}
 
-		.sideways-root .thumbnail-details {
+		.tv-root.sideways-root .thumbnail-details {
 			display: none;
 		}
 	}

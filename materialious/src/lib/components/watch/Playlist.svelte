@@ -9,8 +9,13 @@
 
 	let {
 		playlist,
-		video
-	}: { playlist: { videos: PlaylistPageVideo[]; info: PlaylistPage }; video: VideoPlay } = $props();
+		video,
+		height = '85vh'
+	}: {
+		playlist: { videos: PlaylistPageVideo[]; info: PlaylistPage };
+		video: VideoPlay;
+		height?: string;
+	} = $props();
 
 	let loopPlaylist: boolean = $state(false);
 	let shufflePlaylist: boolean = $state(false);
@@ -24,7 +29,7 @@
 </script>
 
 <article
-	style="height: 85vh; position: relative;scrollbar-width: none;"
+	style="height: {height}; position: relative;scrollbar-width: none;"
 	id="playlist"
 	class="scroll no-padding surface-container border"
 >
@@ -109,10 +114,9 @@
 
 	{#each playlist.videos as playlistVideo, index (index)}
 		<article
-			class="no-padding border"
-			style="margin: .7em;"
+			class="no-padding no-elevate transparent playlist-row"
 			id={playlistVideo.videoId}
-			class:primary-border={playlistVideo.videoId === video.videoId}
+			class:playing={playlistVideo.videoId === video.videoId}
 		>
 			{#key playlistVideo.videoId}
 				<VideoThumbnail
@@ -126,6 +130,16 @@
 </article>
 
 <style>
+	.playlist-row {
+		margin: 0.25rem 0.5rem;
+		padding: 0.375rem !important;
+		border-radius: 0.75rem;
+	}
+
+	.playlist-row.playing {
+		background-color: var(--secondary-container) !important;
+	}
+
 	.hidden-author {
 		display: none;
 	}

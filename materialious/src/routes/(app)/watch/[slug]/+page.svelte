@@ -21,6 +21,7 @@
 		playerIsInWindowFullscreen,
 		playlistCacheStore,
 		playlistSettingsStore,
+		blockedChannelsStore,
 		type PlayerState,
 		filterContentListStore,
 		sleepTimerStore
@@ -597,12 +598,18 @@
 					<Transcript video={data.video} bind:currentTime={playerCurrentTime} />
 				{/if}
 				{#if data.playlistId && data.playlistId in $playlistCacheStore}
-					<Playlist video={data.video} playlist={$playlistCacheStore[data.playlistId]} />
-				{:else if data.video.recommendedVideos}
+					<Playlist
+						video={data.video}
+						playlist={$playlistCacheStore[data.playlistId]}
+						height={data.video.recommendedVideos?.length ? '55vh' : '85vh'}
+					/>
+					<div class="space"></div>
+				{/if}
+				{#if data.video.recommendedVideos}
 					{#key $filterContentListStore?.length}
 						{#each data.video.recommendedVideos as recommendedVideo (recommendedVideo.videoId)}
-							{#if !isItemFiltered(recommendedVideo)}
-								<article class="no-padding border">
+							{#if !isItemFiltered(recommendedVideo) && !$blockedChannelsStore.includes(recommendedVideo.authorId)}
+								<article class="no-padding no-elevate transparent side-row">
 									{#key recommendedVideo.videoId}
 										<Thumbnail video={recommendedVideo} sideways={true} />
 									{/key}
@@ -760,6 +767,10 @@
 		.recommended {
 			margin-top: 0;
 		}
+	}
+
+	.side-row {
+		margin: 0 0 0.75rem;
 	}
 
 	.up-next {

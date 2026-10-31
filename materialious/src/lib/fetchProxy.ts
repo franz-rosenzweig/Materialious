@@ -66,6 +66,20 @@ export const fetchProxied = async (
 		}
 	}
 
+	// SvelteKit refuses a body-less POST/DELETE as a cross-site form submission when
+	// the Origin differs from what it takes as its own, and over plain http (a
+	// private address) it takes https. A content type marks it as not a form.
+	const method = (
+		requestOptions?.method ?? (requestInput instanceof Request ? requestInput.method : 'GET')
+	).toUpperCase();
+	if (method !== 'GET' && method !== 'HEAD' && !(requestInput instanceof Request)) {
+		const headers = new Headers(requestOptions?.headers);
+		if (!headers.has('content-type')) {
+			headers.set('content-type', 'application/json');
+			requestOptions = { ...requestOptions, headers: Object.fromEntries(headers) };
+		}
+	}
+
 	if (isOwnBackend() && Capacitor.getPlatform() === 'web' && requestOptions?.body) {
 		if (requestOptions.body instanceof ArrayBuffer) {
 			requestOptions.body = new Uint8Array(requestOptions?.body);

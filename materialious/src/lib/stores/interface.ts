@@ -93,11 +93,11 @@ export const interfaceTopicTabsSeenStore: Writable<string[]> = persist(
 	createStorage(),
 	'topicTabsSeen'
 );
-// PUBLIC_DEFAULT_HOME_TABS were offered on this device once (see homeTabs.ts).
-export const interfaceHomeTabsDefaultsAppliedStore: Writable<boolean> = persist(
-	writable(false),
+// The PUBLIC_DEFAULT_HOME_TABS titles already offered on this device (see homeTabs.ts).
+export const interfaceHomeTabsDefaultsOfferedStore: Writable<string[]> = persist(
+	writable([]),
 	createStorage(),
-	'homeTabsDefaultsApplied'
+	'homeTabsDefaultsOffered'
 );
 export const interfaceSearchHistoryEnabled = persist(
 	writable(false),

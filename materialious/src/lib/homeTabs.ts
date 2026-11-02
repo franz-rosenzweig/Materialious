@@ -4,7 +4,7 @@ import { getPublicEnv } from './env';
 import { originalFetch } from './fetchProxy';
 import {
 	homeTabsCacheStore,
-	interfaceHomeTabsDefaultsAppliedStore,
+	interfaceHomeTabsDefaultsOfferedStore,
 	interfaceHomeTabsStore
 } from './store';
 import { fetchEntirePlaylist } from './playlist';
@@ -84,28 +84,35 @@ export async function refreshHomeTab(playlistId: string) {
 	}
 }
 
-// PUBLIC_DEFAULT_HOME_TABS lists playlist titles (JSON). The first time someone signs
-// in on a device with nothing pinned, their own playlists with those titles are
-// pinned, in that order. Once per device, so unpinning them all later sticks.
+// PUBLIC_DEFAULT_HOME_TABS lists playlist titles (JSON). Signed in, the account's
+// playlists with those titles are pinned, in that order. Each title is offered once
+// per device, so a title added to the list later reaches every device, and a tab
+// unpinned stays unpinned. One without its playlist yet is offered again later.
 export async function pinDefaultHomeTabs() {
-	if (get(interfaceHomeTabsStore).length > 0 || get(interfaceHomeTabsDefaultsAppliedStore)) return;
-
 	let titles: string[];
 	try {
 		titles = JSON.parse(getPublicEnv('DEFAULT_HOME_TABS') ?? '[]');
 	} catch {
 		return;
 	}
-	if (!Array.isArray(titles) || titles.length === 0) return;
+	if (!Array.isArray(titles)) return;
+
+	const offered = get(interfaceHomeTabsDefaultsOfferedStore);
+	const toOffer = titles.filter((title) => !offered.includes(title));
+	if (toOffer.length === 0) return;
 
 	const playlists = await getPersonalPlaylists();
-	const tabs = titles.flatMap((title) => {
+	const found = toOffer.flatMap((title) => {
 		const playlist = playlists.find((item) => item.title === title);
 		return playlist ? [{ playlistId: playlist.playlistId, title: playlist.title }] : [];
 	});
+	interfaceHomeTabsDefaultsOfferedStore.set([...offered, ...found.map((tab) => tab.title)]);
 
-	interfaceHomeTabsDefaultsAppliedStore.set(true);
-	if (tabs.length > 0 && get(interfaceHomeTabsStore).length === 0) {
-		interfaceHomeTabsStore.set(tabs);
-	}
+	const pinned = get(interfaceHomeTabsStore);
+	const fresh = found.filter((tab) => !pinned.some((item) => item.playlistId === tab.playlistId));
+	if (fresh.length === 0) return;
+
+	// New defaults go after the last default already pinned, ahead of topic tabs.
+	const at = pinned.map((tab) => titles.includes(tab.title)).lastIndexOf(true) + 1;
+	interfaceHomeTabsStore.set([...pinned.slice(0, at), ...fresh, ...pinned.slice(at)]);
 }

@@ -103,6 +103,8 @@
 	"dontRecommendChannel": "Don't recommend channel",
 	"channelBlocked": "{{author}} won't be recommended",
 	"continueWatching": "Continue watching",
+	"accountNudge": "Watching here? Make your own free account to keep your own history, subscriptions and playlists.",
+	"makeAccount": "Make an account",
 	"upNext": "Up next",
 	"defaultPage": "Default page",
 	"homeTabs": "Home tabs",

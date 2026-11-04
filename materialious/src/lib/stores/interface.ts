@@ -99,6 +99,12 @@ export const interfaceHomeTabsDefaultsOfferedStore: Writable<string[]> = persist
 	createStorage(),
 	'homeTabsDefaultsOffered'
 );
+// The make-an-account card on Home, closed on this device.
+export const interfaceAccountNudgeClosedStore: Writable<boolean> = persist(
+	writable(false),
+	createStorage(),
+	'accountNudgeClosed'
+);
 export const interfaceSearchHistoryEnabled = persist(
 	writable(false),
 	createStorage(),

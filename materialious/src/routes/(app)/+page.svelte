@@ -9,6 +9,7 @@
 	import PageLoading from '#lib/components/PageLoading.svelte';
 	import Search from '#lib/components/Search.svelte';
 	import VideoThumbnail from '#lib/components/thumbnail/VideoThumbnail.svelte';
+	import { goToInvidiousLogin } from '#lib/auth';
 	import { pinDefaultHomeTabs, refreshHomeTab } from '#lib/homeTabs';
 	import { syncTopicTabs } from '#lib/topics';
 	import { _ } from '#lib/i18n/index';
@@ -18,6 +19,7 @@
 		feedCacheStore,
 		hideSearchStore,
 		homeTabsCacheStore,
+		interfaceAccountNudgeClosedStore,
 		interfaceHomeActiveTabStore,
 		interfaceHomeTabsStore,
 		invidiousAuthStore
@@ -46,6 +48,11 @@
 			: undefined
 	);
 	let tabErrors: Record<string, string> = $state({});
+
+	// Signed out: ask the visitor to make an account of their own.
+	let showAccountNudge = $derived(
+		!$invidiousAuthStore && !isYTBackend() && !isAndroidTv() && !$interfaceAccountNudgeClosedStore
+	);
 
 	// Started but unfinished, newest first.
 	let continueWatching: VideoWatchHistory[] = $state([]);
@@ -175,6 +182,22 @@
 	});
 </script>
 
+{#if showAccountNudge}
+	<article class="account-nudge surface-container-high no-elevate">
+		<p class="max">{$_('accountNudge')}</p>
+		<nav class="no-space">
+			<button class="small-round" onclick={goToInvidiousLogin}>{$_('makeAccount')}</button>
+			<button
+				class="circle transparent"
+				aria-label={$_('cancel')}
+				onclick={() => interfaceAccountNudgeClosedStore.set(true)}
+			>
+				<i>close</i>
+			</button>
+		</nav>
+	</article>
+{/if}
+
 {#if showTabs}
 	<div class="home-tabs-bar">
 		<div
@@ -237,6 +260,29 @@
 {/if}
 
 <style>
+	.account-nudge {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		margin: 0.5rem 1rem 1rem;
+		padding: 0.75rem 0.75rem 0.75rem 1.25rem;
+	}
+
+	.account-nudge p {
+		margin: 0;
+	}
+
+	@media only screen and (max-width: 600px) {
+		.account-nudge {
+			flex-direction: column;
+			align-items: stretch;
+		}
+
+		.account-nudge nav {
+			justify-content: space-between;
+		}
+	}
+
 	.center {
 		height: 50%;
 		display: flex;

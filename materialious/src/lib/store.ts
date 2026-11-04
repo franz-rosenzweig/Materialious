@@ -48,6 +48,7 @@ export {
 	interfaceHomeActiveTabStore,
 	interfaceHomeTabsDefaultsOfferedStore,
 	interfaceTopicTabsSeenStore,
+	interfaceAccountNudgeClosedStore,
 	interfaceFollowSystemThemeStore,
 	interfaceSearchHistoryEnabled,
 	interfaceAllowInsecureRequests,

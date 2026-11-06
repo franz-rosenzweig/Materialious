@@ -149,9 +149,9 @@
 				<li
 					role="presentation"
 					data-ui="#cc-menu"
-					class:selected={$activeCaptionTrack === track.language_code}
+					class:selected={$activeCaptionTrack === track.label}
 					onclick={() => {
-						selectTextTrack(track.language_code);
+						selectTextTrack(track.label);
 					}}
 				>
 					<i>subtitles</i>

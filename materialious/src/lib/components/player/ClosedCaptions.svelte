@@ -3,10 +3,28 @@
 	import { get } from 'svelte/store';
 	import { addToast } from '../Toast.svelte';
 	import { parseResponse, CaptionsRenderer } from 'media-captions';
+	import ISO6391 from 'iso-639-1';
 
 	let renderer: CaptionsRenderer | undefined;
 
-	let captionTracks: Record<string, string> = {};
+	// Kept by label, not language code: one video can have two tracks in the same
+	// language ("English" and "English (auto-generated)"), and keyed by code the
+	// second one replaced the first, so picking "English" played the auto-generated one.
+	type CaptionTrack = { label: string; languageCode: string; url: string };
+	let captionTracks: CaptionTrack[] = [];
+
+	// The track a subtitle-language setting asks for: "original" takes the
+	// auto-generated track (the spoken language) or else the first one; a language
+	// name ("english", from Settings) takes the first track in that language, which is
+	// the uploader's own before YouTube's auto-generated one.
+	export function defaultCaptionLabel(setting: string): string | undefined {
+		if (!setting || setting === 'original') {
+			const auto = captionTracks.find((track) => /auto/i.test(track.label));
+			return (auto ?? captionTracks[0])?.label;
+		}
+		const code = ISO6391.getCode(setting) || setting;
+		return captionTracks.find((track) => track.languageCode.startsWith(code))?.label;
+	}
 
 	export function setTextTrackVisibility(visible: boolean) {
 		if (!visible) {
@@ -21,15 +39,14 @@
 		}
 	}
 
-	// Fetch caption data for a selected language
-	export async function selectTextTrack(language: string) {
-		if (!language) {
-			// Default to the first available track when no language specified.
-			language = Object.keys(captionTracks)[0] ?? '';
-		}
-		if (!language || !captionTracks[language]) return;
+	// Fetch caption data for a selected track (by label; empty = the first track)
+	export async function selectTextTrack(label: string) {
+		const track = label
+			? captionTracks.find((candidate) => candidate.label === label)
+			: captionTracks[0];
+		if (!track) return;
 
-		const resp = await fetch(captionTracks[language], { method: 'GET' });
+		const resp = await fetch(track.url, { method: 'GET' });
 		if (!resp.ok) {
 			addToast({
 				data: {
@@ -41,7 +58,7 @@
 
 		try {
 			renderer?.changeTrack(await parseResponse(resp));
-			activeCaptionTrack.set(language);
+			activeCaptionTrack.set(track.label);
 		} catch {
 			addToast({
 				data: {
@@ -56,11 +73,7 @@
 	import type { VideoPlay } from '#lib/api/model';
 	import { onDestroy, onMount } from 'svelte';
 	import { getCaptionUrl } from '#lib/player/captions';
-	import {
-		subtitleSettings,
-		playerDefaultSubtitleLanguage,
-		playerCCByDefault
-	} from '#lib/store';
+	import { subtitleSettings, playerDefaultSubtitleLanguage, playerCCByDefault } from '#lib/store';
 	import 'media-captions/styles/captions.css';
 
 	let {
@@ -79,15 +92,20 @@
 	let trackVisible = $derived(hasTracks && $activeCaptionTrack !== null);
 
 	onMount(async () => {
+		captionTracks = [];
 		if (video.captions) {
 			for (const caption of video.captions) {
 				const captionUrl = getCaptionUrl(caption, video.fallbackPatch);
 
 				if (!captionUrl) continue;
 
-				captionTracks[caption.language_code] = captionUrl;
+				captionTracks.push({
+					label: caption.label,
+					languageCode: caption.language_code,
+					url: captionUrl
+				});
 			}
-			hasTracks = Object.keys(captionTracks).length > 0;
+			hasTracks = captionTracks.length > 0;
 		}
 
 		if (captionElement) {
@@ -96,27 +114,18 @@
 
 		// Apply default subtitle language on load when subtitles are enabled by default.
 		if (hasTracks && get(playerCCByDefault)) {
-			const defaultLang = get(playerDefaultSubtitleLanguage);
-			const langCode = getLangCode(defaultLang, video);
+			const label = defaultCaptionLabel(get(playerDefaultSubtitleLanguage));
 
-			if (langCode && captionTracks[langCode]) {
-				await selectTextTrack(langCode);
+			if (label) {
+				await selectTextTrack(label);
 			}
 		}
 	});
 
 	onDestroy(() => {
-		captionTracks = {};
+		captionTracks = [];
 		activeCaptionTrack.set(null);
 	});
-
-	function getLangCode(defaultLang: string, video: VideoPlay): string | undefined {
-		if (defaultLang === 'original') {
-			const auto = video.captions.find((c) => /auto/i.test(c.label));
-			return auto?.language_code ?? video.captions[0]?.language_code;
-		}
-		return video.captions.find((c) => c.language_code.startsWith(defaultLang))?.language_code;
-	}
 
 	let captionStyle = $derived({
 		'--cue-color': $subtitleSettings.color,
